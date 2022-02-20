@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+declare -r INPUT_FILE="${1:?required input file~}"
+
+cat "${INPUT_FILE}" \
+	| sed -E 's/ +\| +/\n/g' \
+	| sed -E 's/^ +//g' \
+	| sed -E 's/^(sudo|nohup) +//g' \
+	| cut -d' ' -f1 \
+	| sed -E 's#^.*\/##g' \
+	| grep -E -v '^(ls|ll|cd|echo|cat|vim)$' \
+	| awk '{total++; cmds[$1]++;} END{for (cmd in cmds) {printf "%d %f %s\n" , cmds[cmd], cmds[cmd]/total*100, cmd;}}' \
+	| sort -t' ' -k1,1nr -k3,3 \
+	| head -10 \
+	| awk '{printf "%4d %6.2f%%  %s\n", $1, $2, $3;}'
+
